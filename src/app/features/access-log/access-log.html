@@ -1,0 +1,226 @@
+<section class="page">
+  <header class="page-head">
+    <div class="page-head__copy">
+      <p class="eyebrow">Bitácora</p>
+      <h1>Accesos de hoy</h1>
+      <p class="page-sub">
+        Registros del día local
+        @if (data()) {
+          · {{ data()!.totalCount }} resultados
+        }
+      </p>
+    </div>
+    <div class="page-head__actions">
+      <button
+        class="ui-btn ui-btn--outline ui-btn--sm"
+        type="button"
+        [class.is-open]="filtersOpen()"
+        (click)="filtersOpen.set(!filtersOpen())"
+        [attr.aria-expanded]="filtersOpen()"
+      >
+        <app-icon name="filter" />
+        Filtros
+      </button>
+      <button
+        class="ui-btn ui-btn--outline ui-btn--icon ui-btn--sm"
+        type="button"
+        (click)="load()"
+        [disabled]="loading()"
+        title="Actualizar"
+        aria-label="Actualizar"
+      >
+        <app-icon name="refresh" />
+      </button>
+    </div>
+  </header>
+
+  <form class="ui-card toolbar" [formGroup]="filters" (ngSubmit)="applyFilters()">
+    <div class="toolbar__search">
+      <div class="ui-input-group">
+        <app-icon name="search" />
+        <input
+          class="ui-input"
+          formControlName="search"
+          type="search"
+          placeholder="Buscar por nombre o matrícula"
+          autocomplete="off"
+          aria-label="Buscar estudiante"
+        />
+      </div>
+      <button class="ui-btn ui-btn--sm" type="submit">Buscar</button>
+    </div>
+
+    @if (filtersOpen()) {
+      <div class="toolbar__filters">
+        <div class="ui-field">
+          <label class="ui-label" for="filter-group">Grupo</label>
+          <input id="filter-group" class="ui-input" formControlName="group" placeholder="IDGS-7A" />
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="filter-from">Desde</label>
+          <input id="filter-from" class="ui-input" formControlName="fromTime" type="time" />
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="filter-to">Hasta</label>
+          <input id="filter-to" class="ui-input" formControlName="toTime" type="time" />
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="filter-sort">Ordenar por</label>
+          <select id="filter-sort" class="ui-select" formControlName="sortBy">
+            <option value="accessTime">Hora</option>
+            <option value="studentNumber">Matrícula</option>
+            <option value="fullName">Nombre</option>
+            <option value="group">Grupo</option>
+            <option value="status">Estado</option>
+          </select>
+        </div>
+        <div class="ui-field">
+          <label class="ui-label" for="filter-direction">Dirección</label>
+          <select id="filter-direction" class="ui-select" formControlName="sortDirection">
+            <option value="desc">Descendente</option>
+            <option value="asc">Ascendente</option>
+          </select>
+        </div>
+        <div class="toolbar__actions">
+          <button class="ui-btn ui-btn--ghost ui-btn--sm" type="button" (click)="clearFilters()">
+            Limpiar
+          </button>
+          <button class="ui-btn ui-btn--sm" type="submit">Aplicar</button>
+        </div>
+      </div>
+    }
+  </form>
+
+  <article class="ui-card">
+    @if (loading()) {
+      <div class="rows-skeleton">
+        @for (item of [1, 2, 3, 4, 5]; track item) {
+          <div class="ui-skeleton"></div>
+        }
+      </div>
+    } @else if (error()) {
+      <div class="ui-empty">
+        <app-icon name="alert" />
+        <h3>No se pudieron cargar los accesos</h3>
+        <p>{{ error() }}</p>
+        <button class="ui-btn ui-btn--outline ui-btn--sm" type="button" (click)="load()">
+          Reintentar
+        </button>
+      </div>
+    } @else if (data()?.items?.length === 0) {
+      <div class="ui-empty">
+        <app-icon name="history" />
+        <h3>Sin registros para estos filtros</h3>
+        <p>Prueba con otro nombre, grupo o rango horario.</p>
+        <button class="ui-btn ui-btn--outline ui-btn--sm" type="button" (click)="clearFilters()">
+          Limpiar filtros
+        </button>
+      </div>
+    } @else {
+      <div class="ui-table-wrap table-desktop">
+        <table class="ui-table">
+          <thead>
+            <tr>
+              <th>Matrícula</th>
+              <th>Estudiante</th>
+              <th>Grupo</th>
+              <th>Hora</th>
+              <th>Caseta</th>
+              <th>Guardia</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of data()?.items; track item.id) {
+              <tr>
+                <td class="mono">{{ item.studentNumber }}</td>
+                <td><strong>{{ item.fullName }}</strong></td>
+                <td>{{ item.group ?? '—' }}</td>
+                <td class="mono">{{ formatTime(item) }}</td>
+                <td>{{ item.gateName }}</td>
+                <td>{{ item.guardName }}</td>
+                <td>
+                  <span
+                    class="ui-badge"
+                    [class.ui-badge--success]="item.status === 'Autorizado'"
+                    [class.ui-badge--danger]="item.status !== 'Autorizado'"
+                  >
+                    {{ item.status }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="cards-mobile">
+        @for (item of data()?.items; track item.id) {
+          <li class="record">
+            <div class="record__top">
+              <span
+                class="ui-icon-chip"
+                [class.ui-icon-chip--success]="item.status === 'Autorizado'"
+                [class.ui-icon-chip--danger]="item.status !== 'Autorizado'"
+              >
+                <app-icon [name]="item.status === 'Autorizado' ? 'check' : 'close'" />
+              </span>
+              <div class="record__student">
+                <strong>{{ item.fullName }}</strong>
+                <small>{{ item.studentNumber }} · {{ item.group ?? 'Sin grupo' }}</small>
+              </div>
+              <time class="mono">{{ formatTime(item) }}</time>
+            </div>
+            <dl class="record__meta">
+              <div><dt>Caseta</dt><dd>{{ item.gateName }}</dd></div>
+              <div><dt>Guardia</dt><dd>{{ item.guardName }}</dd></div>
+            </dl>
+            <span
+              class="ui-badge"
+              [class.ui-badge--success]="item.status === 'Autorizado'"
+              [class.ui-badge--danger]="item.status !== 'Autorizado'"
+            >
+              {{ item.status }}
+            </span>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (data() && data()!.totalPages > 0) {
+      <footer class="ui-card__foot pagination">
+        <label class="pagination__size">
+          <span class="text-muted text-xs">Mostrar</span>
+          <select class="ui-select" [value]="pageSize()" (change)="changePageSize($event)">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </label>
+        <span class="text-muted text-xs">
+          Página {{ data()!.page }} de {{ data()!.totalPages }}
+        </span>
+        <div class="pagination__nav">
+          <button
+            class="ui-btn ui-btn--outline ui-btn--icon ui-btn--sm"
+            type="button"
+            (click)="goToPage(page() - 1)"
+            [disabled]="page() <= 1"
+            aria-label="Página anterior"
+          >
+            <app-icon name="arrow-left" />
+          </button>
+          <button
+            class="ui-btn ui-btn--outline ui-btn--icon ui-btn--sm"
+            type="button"
+            (click)="goToPage(page() + 1)"
+            [disabled]="page() >= data()!.totalPages"
+            aria-label="Página siguiente"
+          >
+            <app-icon name="arrow" />
+          </button>
+        </div>
+      </footer>
+    }
+  </article>
+</section>
