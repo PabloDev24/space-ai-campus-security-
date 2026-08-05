@@ -1,0 +1,82 @@
+.kpi {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 16px;
+}
+
+.kpi small {
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+}
+
+.kpi strong {
+  font-size: 1.875rem;
+  font-weight: 640;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.kpi--loading {
+  min-height: 116px;
+}
+
+.kpi .ui-badge app-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.insight {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-color: color-mix(in oklab, var(--primary) 26%, var(--border));
+  background: color-mix(in oklab, var(--primary) 7%, var(--card));
+}
+
+.insight__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.insight__copy strong {
+  font-size: 0.875rem;
+  font-weight: 620;
+}
+
+.insight__copy p {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+}
+
+.insight__copy b {
+  color: var(--foreground);
+  font-weight: 620;
+}
+
+.chart {
+  position: relative;
+  height: 260px;
+}
+
+.chart-skeleton {
+  height: 260px;
+}
+
+@media (min-width: 768px) {
+  .chart,
+  .chart-skeleton {
+    height: 320px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .chart,
+  .chart-skeleton {
+    height: 360px;
+  }
+}
