@@ -1,0 +1,116 @@
+<header class="nav">
+  <a class="nav__brand" routerLink="/" aria-label="SpaceIA Casetas">
+    <span class="brand-mark"><img src="/images/spaceai-icon.png" alt="" /></span>
+    <span class="brand-copy">
+      <strong>SpaceIA</strong>
+      <small>Control de acceso</small>
+    </span>
+  </a>
+  <div class="nav__actions">
+    <button
+      class="ui-btn ui-btn--ghost ui-btn--icon ui-btn--sm"
+      type="button"
+      (click)="theme.toggle()"
+      aria-label="Cambiar tema"
+    >
+      <app-icon [name]="theme.mode() === 'dark' ? 'sun' : 'moon'" />
+    </button>
+    <a class="ui-btn ui-btn--sm" routerLink="/login">Entrar al portal</a>
+  </div>
+</header>
+
+<main class="landing">
+  <section class="hero">
+    <div class="hero__copy">
+      <span class="ui-badge ui-badge--primary ui-badge--dot">
+        Operación de casetas · Smart Campus
+      </span>
+      <h1>El acceso que <em>reconoce</em> a tu comunidad.</h1>
+      <p class="hero__lead">
+        Portal para el personal de caseta: escanea el QR que genera la app del estudiante, registra
+        la entrada y consulta la actividad del campus con datos reales.
+      </p>
+      <div class="hero__actions">
+        <a class="ui-btn ui-btn--lg" routerLink="/login">
+          Iniciar sesión
+          <app-icon name="arrow" />
+        </a>
+      </div>
+      <p class="hero__note">
+        <app-icon name="lock" />
+        Acceso exclusivo para personal autorizado de la universidad
+      </p>
+    </div>
+
+    <figure class="shot">
+      <img
+        class="shot__photo"
+        src="/images/campus-hero.jpg"
+        alt="Estudiantes caminando por el andador principal del campus universitario"
+        width="1024"
+        height="768"
+        fetchpriority="high"
+        decoding="async"
+      />
+      <span class="shot__scrim" aria-hidden="true"></span>
+
+      <figcaption class="shot__chip shot__chip--gate">
+        <span class="shot__mark"><app-icon name="gate" /></span>
+        <span>
+          <strong>Caseta asignada</strong>
+          <small>Control de acceso SpaceIA</small>
+        </span>
+        <span class="shot__pulse" aria-hidden="true"></span>
+      </figcaption>
+
+    </figure>
+  </section>
+
+  <section class="features" aria-label="Capacidades del portal">
+    @for (feature of features; track feature.title) {
+      <article class="ui-card feature">
+        <div class="feature__top">
+          <span class="ui-icon-chip"><app-icon [name]="feature.icon" /></span>
+          <span class="feature__index">{{ feature.index }}</span>
+        </div>
+        <h2>{{ feature.title }}</h2>
+        <p>{{ feature.copy }}</p>
+      </article>
+    }
+  </section>
+
+  <section class="flow ui-card" id="flujo">
+    <div class="flow__art"><app-caseta-scene /></div>
+    <div class="flow__copy">
+      <p class="eyebrow">Flujo de entrada</p>
+      <h2>Tres pasos, una sola fuente de verdad</h2>
+      <ol class="flow__steps">
+        @for (step of steps; track step.index) {
+          <li>
+            <span>{{ step.index }}</span>
+            <div>
+              <strong>{{ step.title }}</strong>
+              <small>{{ step.copy }}</small>
+            </div>
+          </li>
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="cta__copy">
+      <h2>¿Listo para iniciar tu turno?</h2>
+      <p>Entra con la cuenta de caseta que te asignó el administrador de la universidad.</p>
+    </div>
+    <a class="ui-btn ui-btn--lg" routerLink="/login">
+      Entrar al portal
+      <app-icon name="arrow" />
+    </a>
+  </section>
+</main>
+
+<footer class="foot">
+  <span>SpaceIA · Universidad Tecnológica de León</span>
+  <span>Portal institucional de casetas</span>
+</footer>
