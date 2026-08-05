@@ -1,0 +1,206 @@
+<section class="page">
+  <header class="page-head">
+    <div class="page-head__copy">
+      <p class="eyebrow">Control de acceso</p>
+      <h1>Escáner de QR</h1>
+      <p class="page-sub">
+        Valida el QR dinámico del estudiante en {{ auth.profile()?.gate?.name ?? 'tu caseta' }}.
+      </p>
+    </div>
+    <div class="page-head__actions">
+      <button
+        class="ui-btn ui-btn--outline ui-btn--sm"
+        type="button"
+        (click)="toggleSound()"
+        [attr.aria-label]="soundEnabled() ? 'Desactivar sonido' : 'Activar sonido'"
+      >
+        <app-icon [name]="soundEnabled() ? 'sound-on' : 'sound-off'" />
+        {{ soundEnabled() ? 'Sonido' : 'Silencio' }}
+      </button>
+      @if (cameras().length > 1 && state() !== 'result') {
+        <button
+          class="ui-btn ui-btn--outline ui-btn--sm"
+          type="button"
+          (click)="cycleCamera()"
+          aria-label="Cambiar cámara"
+        >
+          <app-icon name="switch-camera" />
+          Cámara
+        </button>
+      }
+    </div>
+  </header>
+
+  <div class="scanner">
+    <article class="stage">
+      <video #preview autoplay muted playsinline aria-label="Vista previa de la cámara"></video>
+
+      @if (state() === 'scanning') {
+        <div class="frame" aria-hidden="true">
+          <i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i>
+          <span class="sweep"></span>
+        </div>
+        <p class="hint">Coloca el QR dentro del marco</p>
+      }
+
+      @if (state() === 'starting' || state() === 'processing') {
+        <div class="overlay">
+          <span class="ui-spinner ui-spinner--lg"></span>
+          <strong>{{ state() === 'processing' ? 'Validando con SpaceIA…' : 'Preparando cámara…' }}</strong>
+          <small>
+            {{
+              state() === 'processing'
+                ? 'No retires el código todavía'
+                : 'Acepta el permiso cuando el navegador lo solicite'
+            }}
+          </small>
+        </div>
+      }
+
+      @if (state() === 'error') {
+        <div class="overlay">
+          <span class="ui-icon-chip ui-icon-chip--danger"><app-icon name="camera" /></span>
+          <strong>Cámara no disponible</strong>
+          <small>{{ errorMessage() }}</small>
+          <button class="ui-btn ui-btn--sm" type="button" (click)="retryCamera()">
+            <app-icon name="refresh" />
+            Reintentar
+          </button>
+        </div>
+      }
+
+    </article>
+
+    <aside class="side">
+      <article class="ui-card steps">
+        <div class="steps__head">
+          <span class="ui-icon-chip"><app-icon name="shield" /></span>
+          <div>
+            <strong>Validación segura</strong>
+            <small>Firma, vigencia, rol y estado se comprueban en el backend.</small>
+          </div>
+        </div>
+        <ol>
+          <li>
+            <span>1</span>
+            <div>
+              <strong>Solicita el QR</strong>
+              <small>Debe generarse en la app móvil SpaceIA del estudiante.</small>
+            </div>
+          </li>
+          <li>
+            <span>2</span>
+            <div>
+              <strong>Alinea el código</strong>
+              <small>Evita reflejos y mantén el dispositivo estable.</small>
+            </div>
+          </li>
+          <li>
+            <span>3</span>
+            <div>
+              <strong>Espera la decisión</strong>
+              <small>No permitas el paso antes de ver el resultado.</small>
+            </div>
+          </li>
+        </ol>
+      </article>
+
+      <details class="ui-card manual">
+        <summary>
+          <span class="ui-icon-chip ui-icon-chip--muted"><app-icon name="key" /></span>
+          <div>
+            <strong>Ingreso manual</strong>
+            <small>Alternativa si la cámara no funciona</small>
+          </div>
+          <app-icon name="chevron-down" />
+        </summary>
+        <!-- Sin [formGroup] no existe la directiva que emite (ngSubmit): se escucha el evento nativo. -->
+        <form (submit)="$event.preventDefault(); scanManual()">
+          <div class="ui-field">
+            <label class="ui-label" for="manual-token">Token del QR</label>
+            <textarea
+              id="manual-token"
+              class="ui-textarea"
+              [formControl]="manualToken"
+              rows="4"
+              placeholder="Pega el contenido exacto del QR"
+            ></textarea>
+            @if (manualToken.touched && manualToken.invalid) {
+              <small class="ui-field__error">Ingresa un token válido.</small>
+            }
+          </div>
+          <button
+            class="ui-btn ui-btn--block"
+            type="submit"
+            [disabled]="state() === 'processing'"
+          >
+            Validar token
+          </button>
+        </form>
+      </details>
+
+      <p class="privacy">
+        <app-icon name="lock" />
+        La imagen de la cámara se procesa en el dispositivo y no se almacena.
+      </p>
+    </aside>
+  </div>
+
+  @if (state() === 'result' && result(); as scanResult) {
+    <div class="decision-backdrop" role="presentation">
+      <section
+        class="decision-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="decision-title"
+        [class.decision-modal--pending]="scanResult.status === 'pending'"
+        [class.decision-modal--authorized]="scanResult.status === 'authorized'"
+        [class.decision-modal--denied]="scanResult.status === 'denied' || scanResult.status === 'duplicate'"
+      >
+        <div class="decision-modal__glow" aria-hidden="true"></div>
+        <div class="decision-modal__topline">
+          <span class="decision-modal__badge">
+            <app-icon [name]="scanResult.status === 'pending' ? 'user' : scanResult.status === 'authorized' ? 'check' : 'close'" />
+          </span>
+          <span class="decision-modal__code">{{ scanResult.code }}</span>
+        </div>
+
+        @if (scanResult.status === 'pending') {
+          <p class="eyebrow">Identidad verificada</p>
+          <h2 id="decision-title">Confirma el acceso del alumno</h2>
+          <p class="decision-modal__message">Revisa los datos almacenados en SpaceIA antes de permitir el ingreso.</p>
+        } @else {
+          <p class="eyebrow">Resultado de la validación</p>
+          <h2 id="decision-title">{{ scanResult.status === 'authorized' ? 'Acceso autorizado' : scanResult.status === 'duplicate' ? 'Acceso ya registrado' : 'Acceso denegado' }}</h2>
+          <p class="decision-modal__message">{{ scanResult.message }}</p>
+        }
+
+        @if (scanResult.access; as access) {
+          <div class="decision-student">
+            <span class="decision-student__avatar">{{ access.fullName.charAt(0) }}</span>
+            <div><strong>{{ access.fullName }}</strong><small>Alumno SpaceIA</small></div>
+          </div>
+          <dl class="decision-data">
+            <div><dt>Matrícula</dt><dd>{{ access.studentNumber }}</dd></div>
+            <div><dt>Grupo</dt><dd>{{ access.group ?? 'Sin grupo' }}</dd></div>
+            <div><dt>Caseta</dt><dd>{{ access.gateName }}</dd></div>
+            <div><dt>Hora de lectura</dt><dd>{{ access.accessTime | date: 'HH:mm:ss' : 'America/Mexico_City' }}</dd></div>
+          </dl>
+        }
+
+        @if (scanResult.status === 'pending') {
+          <div class="decision-actions">
+            <button class="ui-btn ui-btn--outline decision-actions__deny" type="button" (click)="decide(false)" [disabled]="decisionLoading()">
+              <app-icon name="close" /> Rechazar
+            </button>
+            <button class="ui-btn decision-actions__allow" type="button" (click)="decide(true)" [disabled]="decisionLoading()">
+              @if (decisionLoading()) { <span class="ui-spinner"></span> Procesando… } @else { <app-icon name="check" /> Autorizar }
+            </button>
+          </div>
+        } @else {
+          <button class="ui-btn decision-next" type="button" (click)="scanNext()"><app-icon name="scan" /> Volver a escanear</button>
+        }
+      </section>
+    </div>
+  }
+</section>
