@@ -1,0 +1,151 @@
+<section class="page">
+  <header class="page-head">
+    <div class="page-head__copy">
+      <p class="eyebrow">Cuenta</p>
+      <h1>Mi perfil</h1>
+      <p class="page-sub">Información de tu cuenta, caseta asignada y seguridad.</p>
+    </div>
+    <span
+      class="ui-badge ui-badge--dot"
+      [class.ui-badge--success]="profile()?.status === 'Activo'"
+      [class.ui-badge--danger]="profile() && profile()?.status !== 'Activo'"
+    >
+      {{ profile()?.status ?? 'Cargando' }}
+    </span>
+  </header>
+
+  <div class="profile-grid">
+    <section class="ui-card">
+      <div class="identity">
+        <span class="avatar">{{ profile()?.name?.charAt(0) ?? 'C' }}</span>
+        <div class="identity__copy">
+          <p class="eyebrow">Personal de seguridad</p>
+          <h2>{{ profile()?.name ?? 'Cargando perfil…' }}</h2>
+          <small>{{ profile()?.email }}</small>
+        </div>
+      </div>
+
+      <dl class="data">
+        <div><dt>Usuario</dt><dd>{{ profile()?.username ?? '—' }}</dd></div>
+        <div><dt>Rol</dt><dd>{{ profile()?.role ?? '—' }}</dd></div>
+        <div><dt>Caseta asignada</dt><dd>{{ profile()?.gate?.name ?? 'Sin asignación' }}</dd></div>
+        <div><dt>Código de caseta</dt><dd>{{ profile()?.gate?.code ?? '—' }}</dd></div>
+        <div><dt>Ubicación</dt><dd>{{ profile()?.gate?.location ?? '—' }}</dd></div>
+        <div><dt>Alta de cuenta</dt><dd>{{ formatDate(profile()?.createdAt) }}</dd></div>
+        <div><dt>Último acceso</dt><dd>{{ formatDate(profile()?.lastAccess) }}</dd></div>
+      </dl>
+
+      @if (profile()?.mustChangePassword) {
+        <div class="ui-alert alert-inset">
+          <app-icon name="lock" />
+          <span>
+            <strong>Contraseña temporal activa.</strong>
+            Cámbiala ahora para proteger tu cuenta.
+          </span>
+        </div>
+      }
+    </section>
+
+    <section class="ui-card">
+      <div class="ui-card__head">
+        <div class="page-head__copy">
+          <h2>Cambiar contraseña</h2>
+          <p class="page-sub text-sm">Esta acción cerrará todas tus sesiones activas.</p>
+        </div>
+      </div>
+
+      <form class="ui-card__body password-form" [formGroup]="form" (ngSubmit)="changePassword()" novalidate>
+        @if (error()) {
+          <div class="ui-alert ui-alert--danger" role="alert">
+            <app-icon name="alert" />
+            <span>{{ error() }}</span>
+          </div>
+        }
+
+        <div class="ui-field">
+          <label class="ui-label" for="current-password">Contraseña actual</label>
+          <div class="password-input">
+            <input
+              id="current-password"
+              class="ui-input"
+              formControlName="currentPassword"
+              [type]="hideCurrent() ? 'password' : 'text'"
+              autocomplete="current-password"
+            />
+            <button
+              type="button"
+              (click)="hideCurrent.set(!hideCurrent())"
+              aria-label="Mostrar u ocultar contraseña actual"
+            >
+              <app-icon [name]="hideCurrent() ? 'eye' : 'eye-off'" />
+            </button>
+          </div>
+          @if (form.controls.currentPassword.touched && form.controls.currentPassword.invalid) {
+            <small class="ui-field__error">Ingresa tu contraseña actual.</small>
+          }
+        </div>
+
+        <div class="ui-field">
+          <label class="ui-label" for="new-password">Nueva contraseña</label>
+          <div class="password-input">
+            <input
+              id="new-password"
+              class="ui-input"
+              formControlName="newPassword"
+              [type]="hideNew() ? 'password' : 'text'"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              (click)="hideNew.set(!hideNew())"
+              aria-label="Mostrar u ocultar nueva contraseña"
+            >
+              <app-icon [name]="hideNew() ? 'eye' : 'eye-off'" />
+            </button>
+          </div>
+        </div>
+
+        <ul class="rules" aria-label="Requisitos de contraseña">
+          @for (rule of rules; track rule.key) {
+            <li [class.is-valid]="meets(rule.test)">
+              <app-icon [name]="meets(rule.test) ? 'check' : 'close'" />
+              {{ rule.label }}
+            </li>
+          }
+        </ul>
+
+        <div class="ui-field">
+          <label class="ui-label" for="confirm-password">Confirmar nueva contraseña</label>
+          <input
+            id="confirm-password"
+            class="ui-input"
+            formControlName="confirmPassword"
+            type="password"
+            autocomplete="new-password"
+          />
+          @if (
+            form.controls.confirmPassword.touched &&
+            form.controls.newPassword.value !== form.controls.confirmPassword.value
+          ) {
+            <small class="ui-field__error">Las contraseñas no coinciden.</small>
+          }
+        </div>
+
+        <button class="ui-btn ui-btn--block" type="submit" [disabled]="submitting()">
+          @if (submitting()) {
+            <span class="ui-spinner"></span>
+            Actualizando…
+          } @else {
+            <app-icon name="lock" />
+            Actualizar contraseña
+          }
+        </button>
+
+        <p class="security-note">
+          <app-icon name="shield" />
+          No reutilices esta contraseña en otros servicios ni la compartas con compañeros.
+        </p>
+      </form>
+    </section>
+  </div>
+</section>

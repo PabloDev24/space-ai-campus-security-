@@ -1,0 +1,147 @@
+.profile-grid {
+  display: grid;
+  gap: 14px;
+  align-items: start;
+}
+
+.identity {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 auto;
+  border-radius: var(--radius);
+  background: color-mix(in oklab, var(--primary) 13%, transparent);
+  color: var(--primary);
+  font-size: 1.25rem;
+  font-weight: 640;
+}
+
+.identity__copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.identity__copy h2 {
+  overflow: hidden;
+  font-size: 1.125rem;
+  text-overflow: ellipsis;
+}
+
+.identity__copy small {
+  overflow: hidden;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  text-overflow: ellipsis;
+}
+
+.data {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+}
+
+.data dt {
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.data dd {
+  font-size: 0.875rem;
+  font-weight: 550;
+}
+
+.alert-inset {
+  margin: 0 18px 18px;
+  border-color: color-mix(in oklab, var(--warning) 34%, var(--border));
+  background: var(--warning-soft);
+}
+
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.password-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input .ui-input {
+  padding-right: 42px;
+}
+
+.password-input button {
+  position: absolute;
+  right: 5px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted-foreground);
+}
+
+.password-input button:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.rules li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.rules li app-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.rules li.is-valid {
+  border-color: color-mix(in oklab, var(--success) 30%, transparent);
+  background: var(--success-soft);
+  color: color-mix(in oklab, var(--success) 80%, var(--foreground));
+}
+
+.security-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+@media (min-width: 1024px) {
+  .profile-grid {
+    grid-template-columns: minmax(0, 1.1fr) minmax(340px, 0.9fr);
+  }
+}
