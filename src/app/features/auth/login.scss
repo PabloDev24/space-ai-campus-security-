@@ -1,0 +1,121 @@
+:host {
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+}
+
+.auth-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.auth-top__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted-foreground);
+  font-size: 0.8125rem;
+  font-weight: 550;
+}
+
+.auth-top__brand:hover {
+  color: var(--foreground);
+}
+
+.auth {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px 40px;
+}
+
+.auth__card {
+  display: flex;
+  width: min(100%, 420px);
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px;
+}
+
+.auth__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.auth__brand div {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.auth__brand strong {
+  font-size: 0.875rem;
+  font-weight: 620;
+}
+
+.auth__brand small {
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+}
+
+.auth__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth__intro h1 {
+  font-size: 1.5rem;
+}
+
+.auth__password {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth__password .ui-input {
+  padding-right: 42px;
+}
+
+.auth__password button {
+  position: absolute;
+  right: 5px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted-foreground);
+}
+
+.auth__password button:hover {
+  background: var(--accent);
+  color: var(--accent-foreground);
+}
+
+.auth__help {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .auth-top {
+    padding: 18px 24px;
+  }
+
+  .auth__card {
+    padding: 28px;
+    gap: 16px;
+  }
+}

@@ -1,0 +1,99 @@
+<header class="auth-top">
+  <a class="auth-top__brand" routerLink="/" aria-label="Volver al inicio">
+    <app-icon name="arrow-left" />
+    <span>Volver</span>
+  </a>
+  <button
+    class="ui-btn ui-btn--ghost ui-btn--icon ui-btn--sm"
+    type="button"
+    (click)="theme.toggle()"
+    aria-label="Cambiar tema"
+  >
+    <app-icon [name]="theme.mode() === 'dark' ? 'sun' : 'moon'" />
+  </button>
+</header>
+
+<main class="auth">
+  <form class="ui-card auth__card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="auth__brand">
+      <span class="brand-mark"><img src="/images/spaceai-icon.png" alt="" /></span>
+      <div>
+        <strong>SpaceIA</strong>
+        <small>Portal de casetas</small>
+      </div>
+    </div>
+
+    <div class="auth__intro">
+      <h1>Iniciar sesión</h1>
+      <p class="page-sub">Ingresa con la cuenta de caseta asignada por el administrador.</p>
+    </div>
+
+    @if (notice()) {
+      <div class="ui-alert ui-alert--info" role="status">
+        <app-icon name="info" />
+        <span>{{ notice() }}</span>
+      </div>
+    }
+    @if (errorMessage()) {
+      <div class="ui-alert ui-alert--danger" role="alert">
+        <app-icon name="alert" />
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <div class="ui-field">
+      <label class="ui-label" for="gate-email">Correo institucional</label>
+      <input
+        id="gate-email"
+        class="ui-input"
+        formControlName="email"
+        type="email"
+        inputmode="email"
+        autocomplete="username"
+        placeholder="guardia@spaceai.local"
+      />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <small class="ui-field__error">Ingresa un correo válido.</small>
+      }
+    </div>
+
+    <div class="ui-field">
+      <label class="ui-label" for="gate-password">Contraseña</label>
+      <div class="auth__password">
+        <input
+          id="gate-password"
+          class="ui-input"
+          formControlName="password"
+          [type]="hidePassword() ? 'password' : 'text'"
+          autocomplete="current-password"
+          placeholder="Tu contraseña"
+        />
+        <button
+          type="button"
+          (click)="hidePassword.set(!hidePassword())"
+          [attr.aria-label]="hidePassword() ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+        >
+          <app-icon [name]="hidePassword() ? 'eye' : 'eye-off'" />
+        </button>
+      </div>
+      @if (form.controls.password.touched && form.controls.password.invalid) {
+        <small class="ui-field__error">La contraseña es requerida (mínimo 8 caracteres).</small>
+      }
+    </div>
+
+    <button class="ui-btn ui-btn--lg ui-btn--block" type="submit" [disabled]="submitting()">
+      @if (submitting()) {
+        <span class="ui-spinner"></span>
+        Verificando…
+      } @else {
+        Entrar al portal
+        <app-icon name="arrow" />
+      }
+    </button>
+
+    <p class="auth__help">
+      <app-icon name="info" />
+      ¿No puedes entrar? Contacta al administrador del sistema.
+    </p>
+  </form>
+</main>
