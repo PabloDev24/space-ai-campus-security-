@@ -1,0 +1,90 @@
+<div class="shell">
+  <aside class="sidebar" aria-label="Navegación principal">
+    <a class="sidebar__brand" routerLink="/app/inicio" aria-label="SpaceIA Casetas, ir al inicio">
+      <span class="brand-mark"><img src="/images/spaceai-icon.png" alt="" /></span>
+      <span class="brand-copy">
+        <strong>SpaceIA</strong>
+        <small>Portal de casetas</small>
+      </span>
+    </a>
+
+    <p class="sidebar__label">Operación</p>
+    <nav class="sidebar__nav">
+      @for (item of navItems; track item.path) {
+        <a [routerLink]="item.path" routerLinkActive="is-active" [title]="item.label">
+          <app-icon [name]="item.icon" />
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar__user">
+      <span class="avatar">{{ initial() }}</span>
+      <span class="sidebar__user-copy">
+        <strong>{{ auth.profile()?.name ?? 'Cargando…' }}</strong>
+        <small>{{ auth.profile()?.gate?.name ?? 'Sin caseta' }}</small>
+      </span>
+      <button
+        class="ui-btn ui-btn--ghost ui-btn--icon ui-btn--sm"
+        type="button"
+        (click)="confirmLogout()"
+        title="Cerrar sesión"
+        aria-label="Cerrar sesión"
+      >
+        <app-icon name="logout" />
+      </button>
+    </div>
+  </aside>
+
+  <div class="shell__main">
+    <header class="topbar">
+      <a class="topbar__brand" routerLink="/app/inicio" aria-label="SpaceIA Casetas">
+        <span class="brand-mark"><img src="/images/spaceai-icon.png" alt="" /></span>
+        <span class="brand-copy">
+          <strong>SpaceIA</strong>
+          <small>Casetas</small>
+        </span>
+      </a>
+
+      <div class="topbar__context">
+        <span class="topbar__gate">
+          <app-icon name="gate" />
+          <span>{{ auth.profile()?.gate?.name ?? 'Caseta' }}</span>
+        </span>
+        <span class="topbar__clock">{{ clock() }}</span>
+      </div>
+
+      <div class="topbar__actions">
+        <button
+          class="ui-btn ui-btn--ghost ui-btn--icon ui-btn--sm"
+          type="button"
+          (click)="theme.toggle()"
+          [title]="theme.mode() === 'dark' ? 'Usar tema claro' : 'Usar tema oscuro'"
+          aria-label="Cambiar tema"
+        >
+          <app-icon [name]="theme.mode() === 'dark' ? 'sun' : 'moon'" />
+        </button>
+        <button
+          class="ui-btn ui-btn--ghost ui-btn--icon ui-btn--sm logout-compact"
+          type="button"
+          (click)="confirmLogout()"
+          title="Cerrar sesión"
+          aria-label="Cerrar sesión"
+        >
+          <app-icon name="logout" />
+        </button>
+      </div>
+    </header>
+
+    <main class="shell__content"><router-outlet /></main>
+  </div>
+
+  <nav class="bottomnav" aria-label="Navegación inferior">
+    @for (item of navItems; track item.path) {
+      <a [routerLink]="item.path" routerLinkActive="is-active" [attr.aria-label]="item.label">
+        <app-icon [name]="item.icon" />
+        <span>{{ item.short }}</span>
+      </a>
+    }
+  </nav>
+</div>
