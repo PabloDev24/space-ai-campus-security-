@@ -1,0 +1,146 @@
+<section class="page">
+  <header class="page-head">
+    <div class="page-head__copy">
+      <p class="eyebrow">Estadísticas</p>
+      <h1>Accesos del campus</h1>
+      <p class="page-sub">Qué días y a qué horas se concentra la entrada de estudiantes.</p>
+    </div>
+    <div class="page-head__actions">
+      <div class="ui-segmented" role="group" aria-label="Periodo">
+        @for (option of periods; track option.id) {
+          <button
+            type="button"
+            [class.is-active]="period() === option.id"
+            (click)="setPeriod(option.id)"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </div>
+      <button
+        class="ui-btn ui-btn--outline ui-btn--icon ui-btn--sm"
+        type="button"
+        (click)="load()"
+        [disabled]="loading()"
+        title="Actualizar"
+        aria-label="Actualizar"
+      >
+        <app-icon name="refresh" />
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="ui-alert ui-alert--danger" role="alert">
+      <app-icon name="alert" />
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  <div class="ui-grid ui-grid--stats">
+    @if (loading()) {
+      @for (item of [1, 2, 3]; track item) {
+        <div class="ui-card ui-skeleton kpi kpi--loading"></div>
+      }
+    } @else if (data(); as dashboard) {
+      <article class="ui-card kpi">
+        <small>Total del periodo</small>
+        <strong>{{ dashboard.rangeTotal }}</strong>
+        <span
+          class="ui-badge"
+          [class.ui-badge--success]="dashboard.periodComparisonPercent >= 0"
+          [class.ui-badge--danger]="dashboard.periodComparisonPercent < 0"
+        >
+          <app-icon [name]="dashboard.periodComparisonPercent >= 0 ? 'trend-up' : 'trend-down'" />
+          {{ dashboard.periodComparisonPercent }}% vs. periodo previo
+        </span>
+      </article>
+      <article class="ui-card kpi">
+        <small>Promedio diario</small>
+        <strong>{{ dashboard.averageDaily }}</strong>
+        <span class="text-muted text-xs">{{ rangeLabel() }}</span>
+      </article>
+      <article class="ui-card kpi">
+        <small>Accesos hoy</small>
+        <strong>{{ dashboard.totalToday }}</strong>
+        <span
+          class="ui-badge"
+          [class.ui-badge--success]="dashboard.dayComparisonPercent >= 0"
+          [class.ui-badge--danger]="dashboard.dayComparisonPercent < 0"
+        >
+          <app-icon [name]="dashboard.dayComparisonPercent >= 0 ? 'trend-up' : 'trend-down'" />
+          {{ dashboard.dayComparisonPercent }}% vs. ayer
+        </span>
+      </article>
+    }
+  </div>
+
+  @if (insight(); as result) {
+    <article class="ui-card insight">
+      <span class="ui-icon-chip"><app-icon name="info" /></span>
+      <div class="insight__copy">
+        <strong>Lectura del periodo</strong>
+        <p>
+          @if (result.showWeekday) {
+            Los accesos se concentran <b>{{ result.weekdayLabel }}</b> ({{ result.weekdayCount }}
+            registros en el periodo).
+          }
+          El día con más movimiento fue <b>{{ result.dayLabel }}</b> con
+          {{ result.dayCount }} accesos, y la hora pico del periodo es
+          <b>{{ result.hourLabel }}</b> con {{ result.hourCount }} registros.
+        </p>
+      </div>
+    </article>
+  }
+
+  <article class="ui-card">
+    <div class="ui-card__head">
+      <div class="page-head__copy">
+        <h2>{{ view() === 'day' ? 'Accesos por día' : 'Accesos por hora' }}</h2>
+        <p class="page-sub text-sm">
+          {{
+            view() === 'day'
+              ? 'Cada barra es un día del periodo; la barra resaltada es el máximo.'
+              : 'Distribución horaria acumulada del periodo (' + timeZone() + ').'
+          }}
+        </p>
+      </div>
+      <div class="ui-segmented" role="group" aria-label="Vista de la gráfica">
+        <button type="button" [class.is-active]="view() === 'day'" (click)="setView('day')">
+          Por día
+        </button>
+        <button type="button" [class.is-active]="view() === 'hour'" (click)="setView('hour')">
+          Por hora
+        </button>
+      </div>
+    </div>
+
+    <div class="ui-card__body">
+      @if (loading()) {
+        <div class="ui-skeleton chart-skeleton"></div>
+      } @else if (!data() || data()!.rangeTotal === 0) {
+        <div class="ui-empty">
+          <app-icon name="chart" />
+          <h3>Sin accesos en este periodo</h3>
+          <p>Amplía el rango para ver la distribución de entradas al campus.</p>
+          <button class="ui-btn ui-btn--outline ui-btn--sm" type="button" (click)="setPeriod('30d')">
+            Ver últimos 30 días
+          </button>
+        </div>
+      } @else {
+        <div class="chart">
+          <canvas
+            baseChart
+            type="bar"
+            [data]="chartData()"
+            [options]="chartOptions()"
+            role="img"
+            [attr.aria-label]="
+              view() === 'day' ? 'Gráfica de accesos por día' : 'Gráfica de accesos por hora'
+            "
+          ></canvas>
+        </div>
+      }
+    </div>
+  </article>
+</section>
