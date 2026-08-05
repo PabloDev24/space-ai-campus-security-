@@ -1,0 +1,146 @@
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px;
+}
+
+.toolbar__search {
+  display: flex;
+  gap: 8px;
+}
+
+.toolbar__search .ui-input-group {
+  flex: 1;
+  min-width: 0;
+}
+
+.toolbar__filters {
+  display: grid;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  align-items: end;
+}
+
+.toolbar__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.rows-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 16px;
+}
+
+.rows-skeleton div {
+  height: 46px;
+}
+
+.table-desktop {
+  display: none;
+}
+
+.cards-mobile {
+  display: flex;
+  flex-direction: column;
+}
+
+.record {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+
+.record:last-child {
+  border-bottom: none;
+}
+
+.record__top {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+}
+
+.record__student {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.record__student strong {
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.record__student small {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+
+.record__top time {
+  color: var(--muted-foreground);
+}
+
+.record__meta {
+  display: grid;
+  width: 100%;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.record__meta dt {
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.record__meta dd {
+  font-size: 0.8125rem;
+}
+
+.pagination {
+  gap: 10px;
+}
+
+.pagination__size {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.pagination__size .ui-select {
+  width: auto;
+  min-height: 34px;
+  padding: 4px 30px 4px 10px;
+  font-size: 0.8125rem;
+}
+
+.pagination__nav {
+  display: flex;
+  gap: 6px;
+}
+
+@media (min-width: 900px) {
+  .table-desktop {
+    display: block;
+  }
+
+  .cards-mobile {
+    display: none;
+  }
+}
