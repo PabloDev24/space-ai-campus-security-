@@ -1,0 +1,204 @@
+<section class="page">
+  <header class="page-head">
+    <div class="page-head__copy">
+      <p class="eyebrow">Panel de caseta</p>
+      <h1>Hola, {{ firstName() }}</h1>
+      <p class="page-sub">
+        Supervisa la operación y valida accesos en
+        {{ auth.profile()?.gate?.name ?? 'tu caseta' }}.
+      </p>
+    </div>
+    <div class="page-head__actions">
+      <span
+        class="ui-badge ui-badge--dot"
+        [class.ui-badge--success]="online()"
+        [class.ui-badge--danger]="!online()"
+      >
+        {{ online() ? 'API en línea' : 'Sin conexión' }}
+      </span>
+      <button
+        class="ui-btn ui-btn--outline ui-btn--sm"
+        type="button"
+        (click)="load()"
+        [disabled]="loading()"
+      >
+        <app-icon name="refresh" />
+        Actualizar
+      </button>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="ui-alert ui-alert--danger" role="alert">
+      <app-icon name="alert" />
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  @if (auth.profile()?.mustChangePassword) {
+    <a class="ui-card banner" routerLink="/app/perfil">
+      <span class="ui-icon-chip"><app-icon name="lock" /></span>
+      <span class="banner__copy">
+        <strong>Cambia tu contraseña temporal</strong>
+        <small>Completa este paso para proteger tu cuenta de operación.</small>
+      </span>
+      <app-icon name="arrow" />
+    </a>
+  }
+
+  <section class="stats" aria-label="Resumen del día">
+    @if (loading()) {
+      @for (item of [1, 2, 3]; track item) {
+        <div class="ui-card ui-skeleton stat"></div>
+      }
+    } @else {
+      <article class="ui-card stat">
+        <span class="ui-icon-chip"><app-icon name="history" /></span>
+        <strong>{{ summary()?.accessesToday ?? 0 }}</strong>
+        <small>Accesos hoy</small>
+      </article>
+      <article class="ui-card stat">
+        <span class="ui-icon-chip ui-icon-chip--success"><app-icon name="activity" /></span>
+        <strong>{{ summary()?.accessesLastHour ?? 0 }}</strong>
+        <small>En la última hora</small>
+      </article>
+      <article class="ui-card stat">
+        <span class="ui-icon-chip ui-icon-chip--danger"><app-icon name="close" /></span>
+        <strong>{{ summary()?.deniedToday ?? 0 }}</strong>
+        <small>Lecturas denegadas</small>
+      </article>
+    }
+  </section>
+
+  <article class="ui-card scan-cta">
+    <span class="ui-icon-chip"><app-icon name="scan" /></span>
+    <div class="scan-cta__copy">
+      <h2>Escanear código QR</h2>
+      <p>Lee el QR dinámico del estudiante y recibe la decisión de acceso en segundos.</p>
+    </div>
+    <a class="ui-btn ui-btn--lg" routerLink="/app/escanear">
+      <app-icon name="camera" />
+      Iniciar escaneo
+    </a>
+  </article>
+
+  <article class="ui-card">
+    <div class="ui-card__head">
+      <div class="page-head__copy">
+        <h2>Accesos de hoy</h2>
+        <p class="page-sub text-sm">
+          @if (accesses()) {
+            {{ accesses()!.totalCount }} registros · {{ pageSize }} por página
+          } @else {
+            Consultando registros…
+          }
+        </p>
+      </div>
+      <a class="ui-btn ui-btn--outline ui-btn--sm" routerLink="/app/accesos">
+        Ver bitácora completa
+        <app-icon name="arrow" />
+      </a>
+    </div>
+
+    @if (loading()) {
+      <div class="rows-skeleton">
+        @for (item of [1, 2, 3, 4, 5]; track item) {
+          <div class="ui-skeleton"></div>
+        }
+      </div>
+    } @else if (!accesses() || accesses()!.items.length === 0) {
+      <div class="ui-empty">
+        <app-icon name="history" />
+        <h3>Aún no hay accesos</h3>
+        <p>Los registros del día aparecerán aquí en cuanto se escanee el primer QR.</p>
+      </div>
+    } @else {
+      <div class="ui-table-wrap table-desktop">
+        <table class="ui-table">
+          <thead>
+            <tr>
+              <th>Matrícula</th>
+              <th>Estudiante</th>
+              <th>Grupo</th>
+              <th>Hora</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of accesses()!.items; track item.id) {
+              <tr>
+                <td class="mono">{{ item.studentNumber }}</td>
+                <td><strong>{{ item.fullName }}</strong></td>
+                <td>{{ item.group ?? '—' }}</td>
+                <td class="mono">{{ formatTime(item.accessTime) }}</td>
+                <td>
+                  <span
+                    class="ui-badge"
+                    [class.ui-badge--success]="item.status === 'Autorizado'"
+                    [class.ui-badge--danger]="item.status !== 'Autorizado'"
+                  >
+                    {{ item.status }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <ul class="cards-mobile">
+        @for (item of accesses()!.items; track item.id) {
+          <li class="record">
+            <span
+              class="ui-icon-chip"
+              [class.ui-icon-chip--success]="item.status === 'Autorizado'"
+              [class.ui-icon-chip--danger]="item.status !== 'Autorizado'"
+            >
+              <app-icon [name]="item.status === 'Autorizado' ? 'check' : 'close'" />
+            </span>
+            <span class="record__student">
+              <strong>{{ item.fullName }}</strong>
+              <small>{{ item.studentNumber }} · {{ item.group ?? 'Sin grupo' }}</small>
+            </span>
+            <span class="record__time mono">{{ formatTime(item.accessTime) }}</span>
+            <span
+              class="ui-badge"
+              [class.ui-badge--success]="item.status === 'Autorizado'"
+              [class.ui-badge--danger]="item.status !== 'Autorizado'"
+            >
+              {{ item.status }}
+            </span>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (accesses() && accesses()!.totalPages > 0) {
+      <footer class="ui-card__foot pagination">
+        <span class="text-muted text-xs">
+          Página {{ accesses()!.page }} de {{ accesses()!.totalPages }}
+        </span>
+        <div class="pagination__nav">
+          <button
+            class="ui-btn ui-btn--outline ui-btn--icon ui-btn--sm"
+            type="button"
+            (click)="goToPage(page() - 1)"
+            [disabled]="page() <= 1"
+            aria-label="Página anterior"
+          >
+            <app-icon name="arrow-left" />
+          </button>
+          <button
+            class="ui-btn ui-btn--outline ui-btn--icon ui-btn--sm"
+            type="button"
+            (click)="goToPage(page() + 1)"
+            [disabled]="page() >= accesses()!.totalPages"
+            aria-label="Página siguiente"
+          >
+            <app-icon name="arrow" />
+          </button>
+        </div>
+      </footer>
+    }
+  </article>
+</section>
