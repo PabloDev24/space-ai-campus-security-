@@ -1,0 +1,12 @@
+{
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/images/*", "/*.{png,jpg,jpeg,svg,ico,webp,css,js,json,woff,woff2}"]
+  },
+  "globalHeaders": {
+    "Permissions-Policy": "camera=(self)"
+  },
+  "mimeTypes": {
+    ".json": "application/json"
+  }
+}
