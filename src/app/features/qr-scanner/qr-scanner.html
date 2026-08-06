@@ -157,48 +157,73 @@
         [class.decision-modal--authorized]="scanResult.status === 'authorized'"
         [class.decision-modal--denied]="scanResult.status === 'denied' || scanResult.status === 'duplicate'"
       >
-        <div class="decision-modal__glow" aria-hidden="true"></div>
-        <div class="decision-modal__topline">
-          <span class="decision-modal__badge">
-            <app-icon [name]="scanResult.status === 'pending' ? 'user' : scanResult.status === 'authorized' ? 'check' : 'close'" />
+        <div class="decision-modal__aurora" aria-hidden="true"></div>
+        <header class="decision-modal__header">
+          <div class="decision-modal__signal">
+            <span class="decision-modal__badge">
+              <app-icon [name]="scanResult.status === 'pending' ? 'shield' : scanResult.status === 'authorized' ? 'check' : 'close'" />
+            </span>
+            <div>
+              <p class="decision-modal__overline">
+                {{ scanResult.status === 'pending' ? 'Identidad verificada' : 'Resultado de validación' }}
+              </p>
+              <span class="decision-modal__code">{{ scanResult.code }}</span>
+            </div>
+          </div>
+          <span class="decision-modal__state">
+            <i></i>
+            {{ scanResult.status === 'pending' ? 'Por confirmar' : scanResult.status === 'authorized' ? 'Autorizado' : scanResult.status === 'duplicate' ? 'Registrado' : 'Denegado' }}
           </span>
-          <span class="decision-modal__code">{{ scanResult.code }}</span>
-        </div>
+        </header>
 
         @if (scanResult.status === 'pending') {
-          <p class="eyebrow">Identidad verificada</p>
-          <h2 id="decision-title">Confirma el acceso del alumno</h2>
-          <p class="decision-modal__message">Revisa los datos almacenados en SpaceIA antes de permitir el ingreso.</p>
+          <h2 id="decision-title">¿Autorizar el acceso?</h2>
+          <p class="decision-modal__message">Confirma que la información corresponde al estudiante antes de abrir el acceso.</p>
         } @else {
-          <p class="eyebrow">Resultado de la validación</p>
           <h2 id="decision-title">{{ scanResult.status === 'authorized' ? 'Acceso autorizado' : scanResult.status === 'duplicate' ? 'Acceso ya registrado' : 'Acceso denegado' }}</h2>
           <p class="decision-modal__message">{{ scanResult.message }}</p>
         }
 
         @if (scanResult.access; as access) {
-          <div class="decision-student">
+          <section class="decision-student" aria-label="Datos del estudiante">
             <span class="decision-student__avatar">{{ access.fullName.charAt(0) }}</span>
-            <div><strong>{{ access.fullName }}</strong><small>Alumno SpaceIA</small></div>
-          </div>
+            <div class="decision-student__identity">
+              <strong>{{ access.fullName }}</strong>
+              <span><app-icon name="user" /> Alumno SpaceIA</span>
+            </div>
+          </section>
           <dl class="decision-data">
-            <div><dt>Matrícula</dt><dd>{{ access.studentNumber }}</dd></div>
-            <div><dt>Grupo</dt><dd>{{ access.group ?? 'Sin grupo' }}</dd></div>
-            <div><dt>Caseta</dt><dd>{{ access.gateName }}</dd></div>
-            <div><dt>Hora de lectura</dt><dd>{{ access.accessTime | date: 'HH:mm:ss' : 'America/Mexico_City' }}</dd></div>
+            <div>
+              <dt><app-icon name="key" /> Matrícula</dt>
+              <dd>{{ access.studentNumber }}</dd>
+            </div>
+            <div>
+              <dt><app-icon name="users" /> Grupo</dt>
+              <dd>{{ access.group ?? 'Sin grupo' }}</dd>
+            </div>
+            <div>
+              <dt><app-icon name="gate" /> Caseta</dt>
+              <dd>{{ access.gateName }}</dd>
+            </div>
+            <div>
+              <dt><app-icon name="clock" /> Lectura</dt>
+              <dd>{{ access.accessTime | date: 'HH:mm:ss' : 'America/Mexico_City' }}</dd>
+            </div>
           </dl>
         }
 
         @if (scanResult.status === 'pending') {
+          <p class="decision-modal__notice"><app-icon name="shield" /> Tu decisión quedará registrada en la bitácora de la caseta.</p>
           <div class="decision-actions">
             <button class="ui-btn ui-btn--outline decision-actions__deny" type="button" (click)="decide(false)" [disabled]="decisionLoading()">
-              <app-icon name="close" /> Rechazar
+              <app-icon name="close" /> Rechazar acceso
             </button>
             <button class="ui-btn decision-actions__allow" type="button" (click)="decide(true)" [disabled]="decisionLoading()">
-              @if (decisionLoading()) { <span class="ui-spinner"></span> Procesando… } @else { <app-icon name="check" /> Autorizar }
+              @if (decisionLoading()) { <span class="ui-spinner"></span> Registrando… } @else { <app-icon name="check" /> Autorizar acceso }
             </button>
           </div>
         } @else {
-          <button class="ui-btn decision-next" type="button" (click)="scanNext()"><app-icon name="scan" /> Volver a escanear</button>
+          <button class="ui-btn decision-next" type="button" (click)="scanNext()"><app-icon name="scan" /> Escanear otro código</button>
         }
       </section>
     </div>
