@@ -33,7 +33,7 @@ export class Shell {
   readonly navItems: NavItem[] = [
     { label: 'Inicio', short: 'Inicio', path: '/app/inicio', icon: 'home' },
     { label: 'Escanear QR', short: 'Escanear', path: '/app/escanear', icon: 'scan' },
-    { label: 'Accesos de hoy', short: 'Accesos', path: '/app/accesos', icon: 'history' },
+    { label: 'Accesos', short: 'Accesos', path: '/app/accesos', icon: 'history' },
     { label: 'Estadísticas', short: 'Datos', path: '/app/dashboard', icon: 'chart' },
     { label: 'Mi perfil', short: 'Perfil', path: '/app/perfil', icon: 'user' },
   ];

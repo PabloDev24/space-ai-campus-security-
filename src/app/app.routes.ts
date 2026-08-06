@@ -34,7 +34,7 @@ export const routes: Routes = [
       {
         path: 'accesos',
         loadComponent: () => import('./features/access-log/access-log').then((m) => m.AccessLog),
-        title: 'Accesos de hoy | SpaceIA Casetas',
+        title: 'Accesos | SpaceIA Casetas',
       },
       {
         path: 'dashboard',

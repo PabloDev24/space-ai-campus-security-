@@ -35,17 +35,6 @@
     </div>
   }
 
-  @if (auth.profile()?.mustChangePassword) {
-    <a class="ui-card banner" routerLink="/app/perfil">
-      <span class="ui-icon-chip"><app-icon name="lock" /></span>
-      <span class="banner__copy">
-        <strong>Cambia tu contraseña temporal</strong>
-        <small>Completa este paso para proteger tu cuenta de operación.</small>
-      </span>
-      <app-icon name="arrow" />
-    </a>
-  }
-
   <section class="stats" aria-label="Resumen del día">
     @if (loading()) {
       @for (item of [1, 2, 3]; track item) {

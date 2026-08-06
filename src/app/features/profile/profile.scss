@@ -64,12 +64,6 @@
   font-weight: 550;
 }
 
-.alert-inset {
-  margin: 0 18px 18px;
-  border-color: color-mix(in oklab, var(--warning) 34%, var(--border));
-  background: var(--warning-soft);
-}
-
 .password-form {
   display: flex;
   flex-direction: column;

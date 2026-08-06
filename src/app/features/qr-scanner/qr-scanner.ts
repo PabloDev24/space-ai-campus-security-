@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, ViewChild, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BrowserCodeReader, BrowserQRCodeReader, IScannerControls } from '@zxing/browser';
 import { Result } from '@zxing/library';
 import { finalize } from 'rxjs';
@@ -14,7 +13,7 @@ type ScannerState = 'starting' | 'scanning' | 'processing' | 'result' | 'error' 
 
 @Component({
   selector: 'app-qr-scanner',
-  imports: [ReactiveFormsModule, DatePipe, AppIcon],
+  imports: [DatePipe, AppIcon],
   templateUrl: './qr-scanner.html',
   styleUrl: './qr-scanner.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -37,11 +36,25 @@ export class QrScanner {
   readonly errorMessage = signal<string | null>(null);
   readonly result = signal<GateScanResult | null>(null);
   readonly decisionLoading = signal(false);
-  readonly manualToken = new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.maxLength(4096)] });
   private pendingToken = '';
+
+  /**
+   * Un único AudioContext para toda la sesión. Crear uno por tono dejaba el audio
+   * mudo: el navegador arranca cada contexto en estado "suspended" hasta que hay un
+   * gesto del usuario, y el tono sonaba justo después de un escaneo automático, sin
+   * gesto que lo desbloqueara. Este se reanuda desde el primer toque del guardia.
+   */
+  private audioContext: AudioContext | null = null;
 
   constructor() {
     queueMicrotask(() => void this.initializeCamera());
+
+    // La política de autoplay exige un gesto del usuario antes de dejar sonar nada.
+    // Se aprovecha el primero que ocurra en la vista, sea cual sea, y luego se retira.
+    const unlockAudio = () => void this.resumeAudio();
+    document.addEventListener('pointerdown', unlockAudio, { once: true });
+    document.addEventListener('keydown', unlockAudio, { once: true });
+
     const visibilityHandler = () => {
       if (document.hidden && this.state() === 'scanning') {
         this.resumeAfterVisibility = true;
@@ -54,6 +67,10 @@ export class QrScanner {
     document.addEventListener('visibilitychange', visibilityHandler);
     this.destroyRef.onDestroy(() => {
       document.removeEventListener('visibilitychange', visibilityHandler);
+      document.removeEventListener('pointerdown', unlockAudio);
+      document.removeEventListener('keydown', unlockAudio);
+      void this.audioContext?.close();
+      this.audioContext = null;
       this.stopCamera();
     });
   }
@@ -65,7 +82,7 @@ export class QrScanner {
       return;
     }
     if (!navigator.mediaDevices?.getUserMedia) {
-      this.fail('Este navegador no ofrece acceso compatible a la cámara. Usa el ingreso manual.');
+      this.fail('Este navegador no ofrece acceso compatible a la cámara. Prueba con Chrome o Edge actualizados.');
       return;
     }
 
@@ -102,17 +119,16 @@ export class QrScanner {
     await this.startDecode(next.deviceId);
   }
 
-  toggleSound(): void { this.soundEnabled.update((enabled) => !enabled); }
-
-  scanManual(): void {
-    if (this.manualToken.invalid || this.state() === 'processing') {
-      this.manualToken.markAsTouched(); return;
-    }
-    this.processToken(this.manualToken.value.trim());
+  toggleSound(): void {
+    const enabled = !this.soundEnabled();
+    this.soundEnabled.set(enabled);
+    // Pulsar el botón es un gesto válido: se aprovecha para desbloquear el audio y
+    // además se emite un tono de prueba, para que el guardia oiga que quedó activo.
+    if (enabled) void this.resumeAudio().then(() => this.playTone(true));
   }
 
   scanNext(): void {
-    this.result.set(null); this.manualToken.reset(); this.lastToken = ''; this.pendingToken = ''; this.errorMessage.set(null);
+    this.result.set(null); this.lastToken = ''; this.pendingToken = ''; this.errorMessage.set(null);
     void this.startDecode(this.selectedCameraId() || undefined);
   }
 
@@ -190,10 +206,38 @@ export class QrScanner {
       });
   }
 
-  private playTone(success: boolean): void {
-    if (!this.soundEnabled() || typeof AudioContext === 'undefined') return;
+  /**
+   * Reanuda (o crea) el contexto de audio. Debe invocarse desde un gesto del usuario:
+   * el navegador solo levanta la suspensión en ese momento.
+   */
+  private async resumeAudio(): Promise<void> {
+    if (typeof AudioContext === 'undefined') return;
     try {
-      const context = new AudioContext();
+      this.audioContext ??= new AudioContext();
+      if (this.audioContext.state === 'suspended') await this.audioContext.resume();
+    } catch {
+      // Sin audio se sigue operando: el resultado también se ve y se vibra.
+    }
+  }
+
+  /**
+   * Tono corto de confirmación (agudo ascendente) o de rechazo (grave).
+   *
+   * Antes creaba un AudioContext por tono y nunca sonaba: cada contexto nuevo nace
+   * suspendido hasta que hay un gesto del usuario, y aquí el tono llega justo después
+   * de un escaneo automático. Ahora reutiliza el contexto ya desbloqueado.
+   */
+  private playTone(success: boolean): void {
+    if (!this.soundEnabled()) return;
+    const context = this.audioContext;
+    if (!context || context.state !== 'running') {
+      // Todavía sin gesto que desbloquee el audio: se intenta dejarlo listo para el
+      // siguiente escaneo en lugar de perder el tono actual en un error.
+      void this.resumeAudio();
+      return;
+    }
+
+    try {
       const oscillator = context.createOscillator();
       const gain = context.createGain();
       oscillator.type = 'sine';
@@ -204,7 +248,8 @@ export class QrScanner {
       gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.18);
       oscillator.connect(gain); gain.connect(context.destination);
       oscillator.start(); oscillator.stop(context.currentTime + 0.19);
-      oscillator.addEventListener('ended', () => void context.close(), { once: true });
+      // El contexto es compartido: solo se sueltan los nodos, no se cierra.
+      oscillator.addEventListener('ended', () => { oscillator.disconnect(); gain.disconnect(); }, { once: true });
     } catch {
       // El feedback auditivo es opcional y nunca debe bloquear una validación.
     }
@@ -226,6 +271,6 @@ export class QrScanner {
       if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') return 'No se encontró una cámara disponible en este dispositivo.';
       if (error.name === 'NotReadableError' || error.name === 'TrackStartError') return 'La cámara está siendo utilizada por otra aplicación o pestaña.';
     }
-    return 'No fue posible iniciar la cámara. Puedes ingresar el token manualmente.';
+    return 'No fue posible iniciar la cámara. Revisa los permisos y vuelve a intentarlo.';
   }
 }

@@ -5,22 +5,10 @@
   padding: 14px;
 }
 
-.toolbar__search {
-  display: flex;
-  gap: 8px;
-}
-
-.toolbar__search .ui-input-group {
-  flex: 1;
-  min-width: 0;
-}
-
-.toolbar__filters {
+.toolbar__dates {
   display: grid;
   gap: 12px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
   align-items: end;
 }
 
@@ -29,6 +17,13 @@
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
+}
+
+/* En una sola columna los botones ocupan su propia fila y quedan alineados a la derecha. */
+@media (max-width: 520px) {
+  .toolbar__actions {
+    grid-column: 1 / -1;
+  }
 }
 
 .rows-skeleton {

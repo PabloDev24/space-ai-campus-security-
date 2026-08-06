@@ -2,25 +2,15 @@
   <header class="page-head">
     <div class="page-head__copy">
       <p class="eyebrow">Bitácora</p>
-      <h1>Accesos de hoy</h1>
+      <h1>Accesos</h1>
       <p class="page-sub">
-        Registros del día local
+        {{ rangeLabel() }}
         @if (data()) {
           · {{ data()!.totalCount }} resultados
         }
       </p>
     </div>
     <div class="page-head__actions">
-      <button
-        class="ui-btn ui-btn--outline ui-btn--sm"
-        type="button"
-        [class.is-open]="filtersOpen()"
-        (click)="filtersOpen.set(!filtersOpen())"
-        [attr.aria-expanded]="filtersOpen()"
-      >
-        <app-icon name="filter" />
-        Filtros
-      </button>
       <button
         class="ui-btn ui-btn--outline ui-btn--icon ui-btn--sm"
         type="button"
@@ -35,60 +25,37 @@
   </header>
 
   <form class="ui-card toolbar" [formGroup]="filters" (ngSubmit)="applyFilters()">
-    <div class="toolbar__search">
-      <div class="ui-input-group">
-        <app-icon name="search" />
+    <div class="toolbar__dates">
+      <div class="ui-field">
+        <label class="ui-label" for="filter-from">Desde</label>
         <input
+          id="filter-from"
           class="ui-input"
-          formControlName="search"
-          type="search"
-          placeholder="Buscar por nombre o matrícula"
-          autocomplete="off"
-          aria-label="Buscar estudiante"
+          formControlName="fromDate"
+          type="date"
+          [max]="today"
         />
       </div>
-      <button class="ui-btn ui-btn--sm" type="submit">Buscar</button>
-    </div>
-
-    @if (filtersOpen()) {
-      <div class="toolbar__filters">
-        <div class="ui-field">
-          <label class="ui-label" for="filter-group">Grupo</label>
-          <input id="filter-group" class="ui-input" formControlName="group" placeholder="IDGS-7A" />
-        </div>
-        <div class="ui-field">
-          <label class="ui-label" for="filter-from">Desde</label>
-          <input id="filter-from" class="ui-input" formControlName="fromTime" type="time" />
-        </div>
-        <div class="ui-field">
-          <label class="ui-label" for="filter-to">Hasta</label>
-          <input id="filter-to" class="ui-input" formControlName="toTime" type="time" />
-        </div>
-        <div class="ui-field">
-          <label class="ui-label" for="filter-sort">Ordenar por</label>
-          <select id="filter-sort" class="ui-select" formControlName="sortBy">
-            <option value="accessTime">Hora</option>
-            <option value="studentNumber">Matrícula</option>
-            <option value="fullName">Nombre</option>
-            <option value="group">Grupo</option>
-            <option value="status">Estado</option>
-          </select>
-        </div>
-        <div class="ui-field">
-          <label class="ui-label" for="filter-direction">Dirección</label>
-          <select id="filter-direction" class="ui-select" formControlName="sortDirection">
-            <option value="desc">Descendente</option>
-            <option value="asc">Ascendente</option>
-          </select>
-        </div>
-        <div class="toolbar__actions">
-          <button class="ui-btn ui-btn--ghost ui-btn--sm" type="button" (click)="clearFilters()">
-            Limpiar
-          </button>
-          <button class="ui-btn ui-btn--sm" type="submit">Aplicar</button>
-        </div>
+      <div class="ui-field">
+        <label class="ui-label" for="filter-to">Hasta</label>
+        <input
+          id="filter-to"
+          class="ui-input"
+          formControlName="toDate"
+          type="date"
+          [max]="today"
+        />
       </div>
-    }
+      <div class="toolbar__actions">
+        <button class="ui-btn ui-btn--ghost ui-btn--sm" type="button" (click)="clearFilters()">
+          Hoy
+        </button>
+        <button class="ui-btn ui-btn--sm" type="submit" [disabled]="loading()">
+          <app-icon name="search" />
+          Buscar
+        </button>
+      </div>
+    </div>
   </form>
 
   <article class="ui-card">
@@ -110,10 +77,10 @@
     } @else if (data()?.items?.length === 0) {
       <div class="ui-empty">
         <app-icon name="history" />
-        <h3>Sin registros para estos filtros</h3>
-        <p>Prueba con otro nombre, grupo o rango horario.</p>
+        <h3>Sin registros en estas fechas</h3>
+        <p>No hubo accesos en el periodo seleccionado. Prueba con otro rango.</p>
         <button class="ui-btn ui-btn--outline ui-btn--sm" type="button" (click)="clearFilters()">
-          Limpiar filtros
+          Ver hoy
         </button>
       </div>
     } @else {
@@ -136,7 +103,9 @@
                 <td class="mono">{{ item.studentNumber }}</td>
                 <td><strong>{{ item.fullName }}</strong></td>
                 <td>{{ item.group ?? '—' }}</td>
-                <td class="mono">{{ formatTime(item) }}</td>
+                <td class="mono">
+                  @if (formatDay(item); as day) { {{ day }} · }{{ formatTime(item) }}
+                </td>
                 <td>{{ item.gateName }}</td>
                 <td>{{ item.guardName }}</td>
                 <td>
@@ -169,7 +138,9 @@
                 <strong>{{ item.fullName }}</strong>
                 <small>{{ item.studentNumber }} · {{ item.group ?? 'Sin grupo' }}</small>
               </div>
-              <time class="mono">{{ formatTime(item) }}</time>
+              <time class="mono">
+                @if (formatDay(item); as day) { {{ day }} · }{{ formatTime(item) }}
+              </time>
             </div>
             <dl class="record__meta">
               <div><dt>Caseta</dt><dd>{{ item.gateName }}</dd></div>
