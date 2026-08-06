@@ -143,22 +143,19 @@
   gap: 11px;
 }
 
-.steps__head div,
-.manual summary div {
+.steps__head div {
   display: flex;
   min-width: 0;
   flex: 1;
   flex-direction: column;
 }
 
-.steps__head strong,
-.manual summary strong {
+.steps__head strong {
   font-size: 0.875rem;
   font-weight: 620;
 }
 
-.steps__head small,
-.manual summary small {
+.steps__head small {
   color: var(--muted-foreground);
   font-size: 0.8125rem;
 }
@@ -204,30 +201,6 @@
 .steps li small {
   color: var(--muted-foreground);
   font-size: 0.8125rem;
-}
-
-.manual summary {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  padding: 16px;
-  list-style: none;
-  cursor: pointer;
-}
-
-.manual summary::-webkit-details-marker {
-  display: none;
-}
-
-.manual[open] summary > app-icon:last-child {
-  transform: rotate(180deg);
-}
-
-.manual form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 0 16px 16px;
 }
 
 .privacy {

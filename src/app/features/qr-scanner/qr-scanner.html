@@ -105,40 +105,6 @@
         </ol>
       </article>
 
-      <details class="ui-card manual">
-        <summary>
-          <span class="ui-icon-chip ui-icon-chip--muted"><app-icon name="key" /></span>
-          <div>
-            <strong>Ingreso manual</strong>
-            <small>Alternativa si la cámara no funciona</small>
-          </div>
-          <app-icon name="chevron-down" />
-        </summary>
-        <!-- Sin [formGroup] no existe la directiva que emite (ngSubmit): se escucha el evento nativo. -->
-        <form (submit)="$event.preventDefault(); scanManual()">
-          <div class="ui-field">
-            <label class="ui-label" for="manual-token">Token del QR</label>
-            <textarea
-              id="manual-token"
-              class="ui-textarea"
-              [formControl]="manualToken"
-              rows="4"
-              placeholder="Pega el contenido exacto del QR"
-            ></textarea>
-            @if (manualToken.touched && manualToken.invalid) {
-              <small class="ui-field__error">Ingresa un token válido.</small>
-            }
-          </div>
-          <button
-            class="ui-btn ui-btn--block"
-            type="submit"
-            [disabled]="state() === 'processing'"
-          >
-            Validar token
-          </button>
-        </form>
-      </details>
-
       <p class="privacy">
         <app-icon name="lock" />
         La imagen de la cámara se procesa en el dispositivo y no se almacena.

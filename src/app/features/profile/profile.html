@@ -35,15 +35,6 @@
         <div><dt>Último acceso</dt><dd>{{ formatDate(profile()?.lastAccess) }}</dd></div>
       </dl>
 
-      @if (profile()?.mustChangePassword) {
-        <div class="ui-alert alert-inset">
-          <app-icon name="lock" />
-          <span>
-            <strong>Contraseña temporal activa.</strong>
-            Cámbiala ahora para proteger tu cuenta.
-          </span>
-        </div>
-      }
     </section>
 
     <section class="ui-card">

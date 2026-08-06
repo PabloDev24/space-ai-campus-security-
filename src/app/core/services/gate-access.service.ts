@@ -12,10 +12,9 @@ import { ApiClient } from './api-client';
 export interface AccessFilters {
   page: number;
   pageSize: number;
-  search?: string;
-  group?: string;
-  fromTime?: string;
-  toTime?: string;
+  /** Fechas en formato ISO (yyyy-MM-dd). Sin ellas el backend devuelve el día en curso. */
+  fromDate?: string;
+  toDate?: string;
   sortBy?: string;
   sortDirection?: 'asc' | 'desc';
 }
@@ -42,7 +41,7 @@ export class GateAccessService {
       .set('pageSize', filters.pageSize)
       .set('sortBy', filters.sortBy ?? 'accessTime')
       .set('sortDirection', filters.sortDirection ?? 'desc');
-    for (const key of ['search', 'group', 'fromTime', 'toTime'] as const) {
+    for (const key of ['fromDate', 'toDate'] as const) {
       if (filters[key]) params = params.set(key, filters[key]);
     }
     return this.api.get<PagedAccessResponse>('gate-access/today', params);

@@ -23,16 +23,17 @@ export class AccessLog {
   readonly error = signal<string | null>(null);
   readonly page = signal(1);
   readonly pageSize = signal(10);
-  readonly filtersOpen = signal(false);
+
+  /** Hoy en formato ISO local: el <input type="date"> lo usa como tope superior. */
+  readonly today = this.localIsoDate(new Date());
 
   readonly filters = new FormGroup({
-    search: new FormControl('', { nonNullable: true }),
-    group: new FormControl('', { nonNullable: true }),
-    fromTime: new FormControl('', { nonNullable: true }),
-    toTime: new FormControl('', { nonNullable: true }),
-    sortBy: new FormControl('accessTime', { nonNullable: true }),
-    sortDirection: new FormControl<'asc' | 'desc'>('desc', { nonNullable: true }),
+    fromDate: new FormControl(this.today, { nonNullable: true }),
+    toDate: new FormControl(this.today, { nonNullable: true }),
   });
+
+  /** Mensaje del rango consultado, para que la cabecera no siga diciendo "hoy" sin más. */
+  readonly rangeLabel = signal('');
 
   constructor() {
     this.load();
@@ -44,14 +45,7 @@ export class AccessLog {
   }
 
   clearFilters(): void {
-    this.filters.reset({
-      search: '',
-      group: '',
-      fromTime: '',
-      toTime: '',
-      sortBy: 'accessTime',
-      sortDirection: 'desc',
-    });
+    this.filters.reset({ fromDate: this.today, toDate: this.today });
     this.page.set(1);
     this.load();
   }
@@ -71,9 +65,19 @@ export class AccessLog {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
-    const filters = this.filters.getRawValue();
+
+    // Si el rango viene invertido se intercambia antes de consultar, en lugar de pedir
+    // al backend un periodo imposible y mostrar una lista vacía sin explicación.
+    let { fromDate, toDate } = this.filters.getRawValue();
+    if (fromDate && toDate && toDate < fromDate) {
+      [fromDate, toDate] = [toDate, fromDate];
+      this.filters.setValue({ fromDate, toDate }, { emitEvent: false });
+    }
+
+    this.rangeLabel.set(this.describeRange(fromDate, toDate));
+
     this.service
-      .today({ page: this.page(), pageSize: this.pageSize(), ...filters })
+      .today({ page: this.page(), pageSize: this.pageSize(), fromDate, toDate })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (data) => {
@@ -82,9 +86,33 @@ export class AccessLog {
         },
         error: () => {
           this.loading.set(false);
-          this.error.set('No fue posible consultar los accesos del día.');
+          this.error.set('No fue posible consultar los accesos de estas fechas.');
         },
       });
+  }
+
+  /** "6 de agosto de 2026" o "del 1 al 6 de agosto de 2026". */
+  private describeRange(fromDate: string, toDate: string): string {
+    if (!fromDate && !toDate) return 'Hoy';
+    const desde = fromDate || toDate;
+    const hasta = toDate || fromDate;
+    return desde === hasta
+      ? this.formatDate(desde)
+      : `${this.formatDate(desde)} — ${this.formatDate(hasta)}`;
+  }
+
+  private formatDate(iso: string): string {
+    // Se construye con partes locales: `new Date('2026-08-06')` se interpreta en UTC y
+    // en México retrocede al día anterior.
+    const [year, month, day] = iso.split('-').map(Number);
+    if (!year || !month || !day) return iso;
+    return new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'long', year: 'numeric' })
+      .format(new Date(year, month - 1, day));
+  }
+
+  private localIsoDate(date: Date): string {
+    const offset = date.getTimezoneOffset() * 60_000;
+    return new Date(date.getTime() - offset).toISOString().slice(0, 10);
   }
 
   formatTime(item: AccessListItem): string {
@@ -95,5 +123,23 @@ export class AccessLog {
       hour12: false,
       timeZone: environment.universityTimeZone,
     }).format(new Date(item.accessTime));
+  }
+
+  /**
+   * Día del registro, solo cuando el rango abarca más de una fecha: con un único día
+   * la columna repetiría el mismo valor en todas las filas.
+   */
+  formatDay(item: AccessListItem): string | null {
+    if (!this.isMultiDay()) return null;
+    return new Intl.DateTimeFormat('es-MX', {
+      day: '2-digit',
+      month: '2-digit',
+      timeZone: environment.universityTimeZone,
+    }).format(new Date(item.accessTime));
+  }
+
+  isMultiDay(): boolean {
+    const { fromDate, toDate } = this.filters.getRawValue();
+    return !!fromDate && !!toDate && fromDate !== toDate;
   }
 }
